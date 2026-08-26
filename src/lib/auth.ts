@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { connectToDatabase, addUser, findUserByEmail, findUserById } from "./mongodb";
 import { ObjectId } from "mongodb";
 
-const JWT_SECRET = process.env.JWT_SECRET || "";
+const JWT_SECRET = process.env.JWT_SECRET || "finmate-secret-key-change-in-production";
 
 export interface User {
   _id?: ObjectId | { toString(): string };

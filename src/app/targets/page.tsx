@@ -94,6 +94,20 @@ export default function TargetsPage() {
     );
   }
 
+  if (!user) {
+    return (
+      <>
+        <Sidebar activeNav="targets" />
+        <main className="flex-1 h-screen overflow-y-auto bg-black p-4 md:p-16 pt-20 md:pt-16 bg-grid-pattern">
+          <div className="max-w-6xl mx-auto flex flex-col items-center justify-center h-full gap-4">
+            <p className="font-mono text-xl text-gray-500">LOGIN TO VIEW TARGETS</p>
+            <a href="/login" className="font-mono text-[#00FFFF] hover:text-white transition-colors">LOGIN →</a>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <Sidebar activeNav="targets" />
