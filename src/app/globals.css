@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+:root {
+  --cyan: #00FFFF;
+  --bg: #050505;
+  --fg: #F3F4F6;
+  --border: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-cyan: var(--cyan);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-space-grotesk), sans-serif;
+  background-color: var(--bg);
+  color: var(--fg);
+  text-transform: uppercase;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: var(--cyan);
+  color: black;
+}
+
+/* Brutalist animations */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1.2s infinite;
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.hover-glitch:hover {
+  animation: glitch 0.2s cubic-bezier(.25, .46, .45, .94) both infinite;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Scrollbar override */
+::-webkit-scrollbar {
+  width: 12px;
+  background: var(--bg);
+  border-left: 2px solid var(--border);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--fg);
+  border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyan);
+}
+
+/* Grid pattern background */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, #111111 1px, transparent 1px),
+    linear-gradient(to bottom, #111111 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Offset shadow utility */
+.shadow-offset {
+  box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.1);
+}
+
+.shadow-offset-cyan {
+  box-shadow: 8px 8px 0px 0px rgba(0, 255, 255, 0.7);
+}
+
+.shadow-offset-lg {
+  box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.2);
+}
+
+.shadow-offset-lg-hover {
+  transition: box-shadow 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.shadow-offset-lg-hover:hover {
+  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+}
