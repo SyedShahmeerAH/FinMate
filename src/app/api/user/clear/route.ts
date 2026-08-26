@@ -17,6 +17,6 @@ export async function POST(request: Request) {
   const userId = await getUserId(request);
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  clearAllUserData(userId);
+  await clearAllUserData(userId);
   return NextResponse.json({ success: true });
 }

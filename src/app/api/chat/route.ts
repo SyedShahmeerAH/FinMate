@@ -13,9 +13,9 @@ const generalClient = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1",
 });
 
-function buildUserDataString(userId: string): string {
+async function buildUserDataString(userId: string): Promise<string> {
   try {
-    const summary = getUserSummary(userId);
+    const summary = await getUserSummary(userId);
     const lines: string[] = [];
     lines.push(`Balance: Rs. ${summary.balance.toLocaleString()}`);
     lines.push(`Income: Rs. ${summary.totalIncome.toLocaleString()}`);
@@ -46,20 +46,20 @@ async function getUserId(request: Request): Promise<string | null> {
   return verifyToken(token)?.userId || null;
 }
 
-function saveMsg(userId: string, conversationId: string | null, userMsg: string, assistantMsg: string): string | null {
+async function saveMsg(userId: string, conversationId: string | null, userMsg: string, assistantMsg: string): Promise<string | null> {
   if (!userId) return null;
   if (conversationId) {
-    const conv = getConversation(userId, conversationId);
+    const conv = await getConversation(userId, conversationId);
     if (conv) {
       conv.messages.push({ role: "user", content: userMsg });
       conv.messages.push({ role: "assistant", content: assistantMsg });
       conv.updatedAt = new Date().toISOString();
-      saveConversation(userId, conv);
+      await saveConversation(userId, conv);
     }
     return null;
   }
   const title = userMsg.substring(0, 50) + (userMsg.length > 50 ? "..." : "");
-  const conv = createConversation(userId, title, [
+  const conv = await createConversation(userId, title, [
     { role: "user", content: userMsg },
     { role: "assistant", content: assistantMsg },
   ]);
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
           break;
         default: {
           // General conversation
-          const userDataString = buildUserDataString(userId);
+          const userDataString = await buildUserDataString(userId);
           const generalRes = await generalClient.chat.completions.create({
             model: "openai/gpt-oss-120b",
             messages: [
@@ -165,7 +165,7 @@ RULES:
     const fullResponse = prefix + (prefix ? "\n" : "") + result.content;
 
     // Save conversation
-    const newConvId = userId ? saveMsg(userId, conversationId || null, lastUserMsg, result.content) : null;
+    const newConvId = userId ? await saveMsg(userId, conversationId || null, lastUserMsg, result.content) : null;
     if (newConvId) {
       return new Response("[CONV_ID:" + newConvId + "]\n" + fullResponse, {
         headers: { "Content-Type": "text/plain; charset=utf-8" },

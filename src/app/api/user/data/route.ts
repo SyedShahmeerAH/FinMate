@@ -17,9 +17,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const summary = getUserSummary(userId);
-  const transactions = getTransactions(userId);
-  const targets = getTargets(userId);
+  const summary = await getUserSummary(userId);
+  const transactions = await getTransactions(userId);
+  const targets = await getTargets(userId);
 
   return NextResponse.json({ summary, transactions, targets });
 }

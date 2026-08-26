@@ -6,9 +6,9 @@ const client = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1",
 });
 
-function buildBudgetData(userId: string): string {
-  const summary = getUserSummary(userId);
-  const transactions = getTransactions(userId);
+async function buildBudgetData(userId: string): Promise<string> {
+  const summary = await getUserSummary(userId);
+  const transactions = await getTransactions(userId);
 
   const lines: string[] = [];
   lines.push(`Balance: Rs. ${summary.balance.toLocaleString()}`);
@@ -38,7 +38,7 @@ export async function runBudgetAgent(
   userId: string,
   messages: Array<Record<string, unknown>>
 ): Promise<{ content: string; executedActions: [] }> {
-  const budgetData = buildBudgetData(userId);
+  const budgetData = await buildBudgetData(userId);
   const systemPrompt = `You are Finmate's Budget Agent. All money in PKR (Rs.).
 
 USER BUDGET DATA:

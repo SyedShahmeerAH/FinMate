@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const targets = getTargets(userId);
+  const targets = await getTargets(userId);
   return NextResponse.json({ targets });
 }
 
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const target = addTarget(userId, {
+    const target = await addTarget(userId, {
       name: name.toUpperCase(),
       current: Number(current) || 0,
       goal: Number(goal),
@@ -61,7 +61,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Missing targetId or updates" }, { status: 400 });
     }
 
-    const target = updateTarget(userId, targetId, updates);
+    const target = await updateTarget(userId, targetId, updates);
     if (!target) {
       return NextResponse.json({ error: "Target not found" }, { status: 404 });
     }
@@ -84,7 +84,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing targetId" }, { status: 400 });
     }
 
-    const deleted = deleteTarget(userId, targetId);
+    const deleted = await deleteTarget(userId, targetId);
     if (!deleted) {
       return NextResponse.json({ error: "Target not found" }, { status: 404 });
     }

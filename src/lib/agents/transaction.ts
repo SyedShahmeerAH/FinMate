@@ -83,22 +83,22 @@ export const TRANSACTION_TOOLS: AgentTool[] = [
   }
 ];
 
-function buildUserDataString(userId: string): string {
-  const transactions = getTransactions(userId);
+async function buildUserDataString(userId: string): Promise<string> {
+  const transactions = await getTransactions(userId);
   if (transactions.length === 0) return "No transactions yet.";
   return transactions
     .map(t => `- [${t._id}] ${t.description} (${t.category}) Rs. ${t.amount} on ${t.date}`)
     .join("\n");
 }
 
-function executeTransactionAction(userId: string, tc: { id: string; function: { name: string; arguments: string } }): string {
+async function executeTransactionAction(userId: string, tc: { id: string; function: { name: string; arguments: string } }): Promise<string> {
   const { name, arguments: argsStr } = tc.function;
   let args: Record<string, unknown>;
   try { args = JSON.parse(argsStr); } catch { return "Parse error"; }
   try {
     switch (name) {
       case "add_transaction": {
-        const tx = addTransaction(userId, {
+        const tx = await addTransaction(userId, {
           date: (args.date as string) || new Date().toISOString().split("T")[0],
           description: String(args.description || "UNKNOWN").toUpperCase(),
           category: String(args.category || "OTHER").toUpperCase(),
@@ -111,7 +111,7 @@ function executeTransactionAction(userId: string, tc: { id: string; function: { 
         const txArr = args.transactions as Array<{ description: string; category: string; amount: number }>;
         const results: string[] = [];
         for (const item of (txArr || [])) {
-          const tx = addTransaction(userId, {
+          const tx = await addTransaction(userId, {
             date: new Date().toISOString().split("T")[0],
             description: String(item.description || "UNKNOWN").toUpperCase(),
             category: String(item.category || "OTHER").toUpperCase(),
@@ -123,26 +123,26 @@ function executeTransactionAction(userId: string, tc: { id: string; function: { 
         return "RECORDED: " + results.join(", ");
       }
       case "remove_transaction": {
-        if (args.txId) return deleteTransaction(userId, String(args.txId)) ? "DELETED" : "NOT FOUND";
+        if (args.txId) return await deleteTransaction(userId, String(args.txId)) ? "DELETED" : "NOT FOUND";
         if (args.description) {
-          const txs = getTransactions(userId);
+          const txs = await getTransactions(userId);
           const matches = txs.filter(t => t.description.toLowerCase().includes(String(args.description).toLowerCase()));
           let count = 0;
-          for (const tx of matches) { if (deleteTransaction(userId, tx._id)) count++; }
+          for (const tx of matches) { if (await deleteTransaction(userId, tx._id)) count++; }
           return `DELETED ${count} matching '${args.description}'`;
         }
         return "NO MATCH";
       }
       case "update_transaction": {
         const txId = String(args.txId || "");
-        const txs = getTransactions(userId);
+        const txs = await getTransactions(userId);
         const existing = txs.find(t => t._id === txId);
         if (!existing) return "NOT FOUND";
         if (args.description) existing.description = String(args.description).toUpperCase();
         if (args.amount !== undefined) existing.amount = Number(args.amount);
         if (args.category) existing.category = String(args.category).toUpperCase();
-        deleteTransaction(userId, txId);
-        addTransaction(userId, { date: existing.date, description: existing.description, category: existing.category, amount: existing.amount, createdAt: existing.createdAt });
+        await deleteTransaction(userId, txId);
+        await addTransaction(userId, { date: existing.date, description: existing.description, category: existing.category, amount: existing.amount, createdAt: existing.createdAt });
         return `UPDATED: ${existing.description} Rs. ${existing.amount}`;
       }
       default:
@@ -157,7 +157,7 @@ export async function runTransactionAgent(
   userId: string,
   messages: Array<Record<string, unknown>>
 ): Promise<{ content: string; executedActions: string[] }> {
-  const userData = buildUserDataString(userId);
+  const userData = await buildUserDataString(userId);
   const systemPrompt = `You are Finmate's Transaction Agent. All money in PKR (Rs.).
 
 USER TRANSACTIONS:
@@ -209,7 +209,7 @@ Categories: FOOD, SUBS, EDU, TRANSIT, ENTERTAIN, UTILITIES, INCOME, SAVINGS, OTH
 
   if (msg.tool_calls && msg.tool_calls.length > 0) {
     for (const tc of msg.tool_calls) {
-      executedActions.push(executeTransactionAction(userId, tc as any));
+      executedActions.push(await executeTransactionAction(userId, tc as any));
     }
 
     groqMessages.push(msg as any);

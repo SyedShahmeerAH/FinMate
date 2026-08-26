@@ -56,9 +56,9 @@ export const GOAL_TOOLS: AgentTool[] = [
   }
 ];
 
-function buildUserDataString(userId: string): string {
-  const transactions = getTransactions(userId);
-  const targets = getTargets(userId);
+async function buildUserDataString(userId: string): Promise<string> {
+  const transactions = await getTransactions(userId);
+  const targets = await getTargets(userId);
 
   const totalIncome = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
   const totalExpenses = transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
@@ -82,7 +82,7 @@ function buildUserDataString(userId: string): string {
   return lines.join("\n");
 }
 
-function executeGoalAction(userId: string, tc: { id: string; function: { name: string; arguments: string } }): string {
+async function executeGoalAction(userId: string, tc: { id: string; function: { name: string; arguments: string } }): Promise<string> {
   const { name, arguments: argsStr } = tc.function;
   let args: Record<string, unknown>;
   try { args = JSON.parse(argsStr); } catch { return "Parse error"; }
@@ -90,8 +90,8 @@ function executeGoalAction(userId: string, tc: { id: string; function: { name: s
     switch (name) {
       case "add_savings_goal": {
         const colors = ["bg-[#00FFFF]", "bg-white", "bg-gray-500"];
-        const existing = getTargets(userId);
-        const t = addTarget(userId, {
+        const existing = await getTargets(userId);
+        const t = await addTarget(userId, {
           name: String(args.name || "GOAL").toUpperCase(),
           current: Number(args.current || 0),
           goal: Number(args.goal || 0),
@@ -101,18 +101,17 @@ function executeGoalAction(userId: string, tc: { id: string; function: { name: s
         return `CREATED GOAL: ${t.name} Rs. ${t.goal}`;
       }
       case "update_goal_progress": {
-        const targets = getTargets(userId);
+        const targets = await getTargets(userId);
         const t = targets.find(x => x.name.toLowerCase().includes(String(args.name || "").toLowerCase()));
         if (!t) return "GOAL NOT FOUND";
-        // If amount provided, ADD to current. If current provided, SET directly.
         const newAmount = args.amount !== undefined
           ? t.current + Number(args.amount)
           : Number(args.current || 0);
-        const u = updateTarget(userId, t._id, { current: newAmount });
+        const u = await updateTarget(userId, t._id, { current: newAmount });
         return u ? `UPDATED ${t.name}: Rs. ${t.current} → Rs. ${newAmount}` : "FAILED";
       }
       case "remove_goal":
-        return deleteTarget(userId, String(args.targetId || "")) ? "DELETED" : "NOT FOUND";
+        return await deleteTarget(userId, String(args.targetId || "")) ? "DELETED" : "NOT FOUND";
       default:
         return "UNKNOWN TOOL";
     }
@@ -127,7 +126,7 @@ export async function runGoalAgent(
   userId: string,
   messages: Array<Record<string, unknown>>
 ): Promise<GoalResult> {
-  const userData = buildUserDataString(userId);
+  const userData = await buildUserDataString(userId);
   const systemPrompt = `You are Finmate's Goal Agent. All money in PKR (Rs.).
 
 USER DATA:
@@ -170,7 +169,7 @@ IMPORTANT: When updating progress, read the current value from USER DATA and ADD
 
   if (msg.tool_calls && msg.tool_calls.length > 0) {
     for (const tc of msg.tool_calls) {
-      executedActions.push(executeGoalAction(userId, tc as any));
+      executedActions.push(await executeGoalAction(userId, tc as any));
     }
 
     groqMessages.push(msg as any);

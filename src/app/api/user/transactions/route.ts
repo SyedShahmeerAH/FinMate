@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const transactions = getTransactions(userId);
+  const transactions = await getTransactions(userId);
   return NextResponse.json({ transactions });
 }
 
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const tx = addTransaction(userId, {
+    const tx = await addTransaction(userId, {
       date: date || new Date().toISOString().split("T")[0],
       description: description.toUpperCase(),
       category: category.toUpperCase(),
@@ -60,7 +60,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing txId" }, { status: 400 });
     }
 
-    const deleted = deleteTransaction(userId, txId);
+    const deleted = await deleteTransaction(userId, txId);
     if (!deleted) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }

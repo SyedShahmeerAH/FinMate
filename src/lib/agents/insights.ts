@@ -6,9 +6,9 @@ const client = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1",
 });
 
-function buildInsightsData(userId: string): string {
-  const summary = getUserSummary(userId);
-  const transactions = getTransactions(userId);
+async function buildInsightsData(userId: string): Promise<string> {
+  const summary = await getUserSummary(userId);
+  const transactions = await getTransactions(userId);
 
   const lines: string[] = [];
   lines.push(`Balance: Rs. ${summary.balance.toLocaleString()}`);
@@ -45,7 +45,7 @@ export async function runInsightsAgent(
   userId: string,
   messages: Array<Record<string, unknown>>
 ): Promise<{ content: string; executedActions: [] }> {
-  const insightsData = buildInsightsData(userId);
+  const insightsData = await buildInsightsData(userId);
   const systemPrompt = `You are Finmate's Insights Agent. All money in PKR (Rs.).
 
 USER DATA:

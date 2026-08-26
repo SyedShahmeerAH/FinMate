@@ -21,12 +21,12 @@ export async function GET(request: Request) {
   const convId = url.searchParams.get("id");
 
   if (convId) {
-    const conv = getConversation(userId, convId);
+    const conv = await getConversation(userId, convId);
     if (!conv) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(conv);
   }
 
-  const conversations = getConversations(userId);
+  const conversations = await getConversations(userId);
   // Return conversations with messages for list view
   return NextResponse.json(conversations);
 }
@@ -36,6 +36,6 @@ export async function DELETE(request: Request) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { conversationId } = await request.json();
-  deleteConversation(userId, conversationId);
+  await deleteConversation(userId, conversationId);
   return NextResponse.json({ success: true });
 }

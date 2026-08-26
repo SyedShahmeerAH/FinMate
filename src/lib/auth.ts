@@ -1,17 +1,9 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { connectToDatabase, addUser, findUserByEmail, findUserById } from "./mongodb";
+import { connectToDatabase } from "./mongodb";
 import { ObjectId } from "mongodb";
 
 const JWT_SECRET = process.env.JWT_SECRET || "finmate-secret-key-change-in-production";
-
-export interface User {
-  _id?: ObjectId | { toString(): string };
-  name: string;
-  email: string;
-  password: string;
-  createdAt: Date;
-}
 
 export interface SafeUser {
   _id: string;
@@ -42,77 +34,33 @@ export function verifyToken(token: string): { userId: string } | null {
 
 export async function createUser(name: string, email: string, password: string): Promise<SafeUser> {
   const hashedPassword = await hashPassword(password);
-  
-  try {
-    const { db } = await connectToDatabase();
-    
-    const existingUser = await db.collection("users").findOne({ email });
-    if (existingUser) {
-      throw new Error("User already exists");
-    }
+  const { db } = await connectToDatabase();
 
-    const user = {
-      name,
-      email,
-      password: hashedPassword,
-      createdAt: new Date(),
-    };
-
-    const result = await db.collection("users").insertOne(user);
-    
-    return {
-      _id: result.insertedId.toString(),
-      name,
-      email,
-      createdAt: user.createdAt,
-    };
-  } catch (error) {
-    if (error instanceof Error && error.message === "MONGODB_UNREACHABLE") {
-      const existingUser = findUserByEmail(email);
-      if (existingUser) {
-        throw new Error("User already exists");
-      }
-
-      const user = addUser({
-        name,
-        email,
-        password: hashedPassword,
-        createdAt: new Date().toISOString(),
-      });
-
-      return {
-        _id: user._id,
-        name,
-        email,
-        createdAt: new Date(user.createdAt),
-      };
-    }
-    throw error;
+  const existingUser = await db.collection("users").findOne({ email });
+  if (existingUser) {
+    throw new Error("User already exists");
   }
+
+  const user = {
+    name,
+    email,
+    password: hashedPassword,
+    createdAt: new Date(),
+  };
+
+  const result = await db.collection("users").insertOne(user);
+
+  return {
+    _id: result.insertedId.toString(),
+    name,
+    email,
+    createdAt: user.createdAt,
+  };
 }
 
 export async function loginUser(email: string, password: string): Promise<{ user: SafeUser; token: string }> {
-  let user: User | null = null;
-
-  try {
-    const { db } = await connectToDatabase();
-    user = await db.collection<User>("users").findOne({ email });
-  } catch (error) {
-    if (error instanceof Error && error.message === "MONGODB_UNREACHABLE") {
-      const found = findUserByEmail(email);
-      if (found) {
-        user = {
-          _id: found._id,
-          name: found.name,
-          email: found.email,
-          password: found.password,
-          createdAt: new Date(found.createdAt),
-        };
-      }
-    } else {
-      throw error;
-    }
-  }
+  const { db } = await connectToDatabase();
+  const user = await db.collection("users").findOne({ email }) as any;
 
   if (!user) {
     throw new Error("Invalid credentials");
@@ -123,11 +71,11 @@ export async function loginUser(email: string, password: string): Promise<{ user
     throw new Error("Invalid credentials");
   }
 
-  const token = generateToken(user._id!.toString());
-  
+  const token = generateToken(user._id.toString());
+
   return {
     user: {
-      _id: user._id!.toString(),
+      _id: user._id.toString(),
       name: user.name,
       email: user.email,
       createdAt: user.createdAt,
@@ -140,30 +88,15 @@ export async function getUserFromToken(token: string): Promise<SafeUser | null> 
   const decoded = verifyToken(token);
   if (!decoded) return null;
 
-  try {
-    const { db } = await connectToDatabase();
-    const user = await db.collection<User>("users").findOne({ _id: new ObjectId(decoded.userId) });
-    
-    if (!user) return null;
+  const { db } = await connectToDatabase();
+  const user = await db.collection("users").findOne({ _id: new ObjectId(decoded.userId) }) as any;
 
-    return {
-      _id: user._id!.toString(),
-      name: user.name,
-      email: user.email,
-      createdAt: user.createdAt,
-    };
-  } catch (error) {
-    if (error instanceof Error && error.message === "MONGODB_UNREACHABLE") {
-      const user = findUserById(decoded.userId);
-      if (!user) return null;
+  if (!user) return null;
 
-      return {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        createdAt: new Date(user.createdAt),
-      };
-    }
-    throw error;
-  }
+  return {
+    _id: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    createdAt: user.createdAt,
+  };
 }
