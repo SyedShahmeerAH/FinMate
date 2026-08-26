@@ -67,7 +67,9 @@ export async function createUser(name: string, email: string, password: string):
       return { _id: result.insertedId.toString(), name, email, createdAt: user.createdAt };
     } catch (e) {
       if (e instanceof Error && e.message === "User already exists") throw e;
-      // Fall through to file-based
+      // On Vercel (production), don't fall back to files — throw
+      if (process.env.VERCEL) throw new Error("Database unavailable. Check MongoDB connection.");
+      // Fall through to file-based on local dev
     }
   }
 
@@ -94,7 +96,8 @@ export async function loginUser(email: string, password: string): Promise<{ user
       const { db } = await connectToDatabase();
       user = await db.collection("users").findOne({ email });
     } catch {
-      // Fall through to file-based
+      if (process.env.VERCEL) throw new Error("Database unavailable. Check MongoDB connection.");
+      // Fall through to file-based on local dev
     }
   }
 
@@ -129,7 +132,8 @@ export async function getUserFromToken(token: string): Promise<SafeUser | null> 
       const user = await db.collection("users").findOne({ _id: new ObjectId(decoded.userId) }) as any;
       if (user) return { _id: user._id.toString(), name: user.name, email: user.email, createdAt: user.createdAt };
     } catch {
-      // Fall through to file-based
+      if (process.env.VERCEL) return null;
+      // Fall through to file-based on local dev
     }
   }
 
