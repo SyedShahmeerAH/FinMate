@@ -108,12 +108,13 @@ export default function DashboardPage() {
   }
 
   const s = data?.summary;
+  const burnRate = s ? Math.round(s.totalExpenses / Math.max(1, new Date().getDate())) : 0;
 
   return (
     <>
       <Sidebar activeNav="dashboard" />
       <main className="md:ml-[296px] min-h-screen p-6 md:p-12 lg:p-16">
-        <div className="max-w-6xl mx-auto flex flex-col gap-16 pb-20">
+        <div className="max-w-7xl mx-auto flex flex-col gap-16 pb-20">
 
           {/* Header */}
           <section className="flex flex-col gap-6 animate-fade-in-up">
@@ -121,38 +122,102 @@ export default function DashboardPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)]" />
               Dashboard — {user.name}
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.05]">
-              Overview
+            <h1 className="text-[clamp(3.5rem,8vw,6rem)] font-black text-white tracking-[-0.04em] leading-[0.9]">
+              OVERVIEW.
             </h1>
           </section>
 
-          {/* Bento Grid — Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { label: "Balance", value: "Rs. " + (s?.balance || 0).toLocaleString(), icon: "lucide:wallet", span: "md:col-span-2" },
-              { label: "Income", value: "Rs. " + (s?.totalIncome || 0).toLocaleString(), icon: "lucide:trending-up", span: "" },
-              { label: "Expenses", value: "Rs. " + (s?.totalExpenses || 0).toLocaleString(), icon: "lucide:credit-card", span: "md:col-span-3" },
-            ].map((item, i) => (
-              <div
-                key={item.label}
-                className={`doppelrand animate-fade-in-up ${item.span}`}
-                style={{ animationDelay: `${100 + i * 75}ms` }}
-              >
-                <div className="doppelrand-inner p-6 md:p-8 flex flex-col justify-between h-full">
-                  <div className="flex items-center justify-between mb-6">
-                    <p className="text-xs uppercase tracking-[0.15em] text-white/30">{item.label}</p>
-                    <div className="w-8 h-8 rounded-full bg-[var(--cyan)]/5 border border-[var(--cyan)]/10 flex items-center justify-center">
-                      <iconify-icon icon={item.icon} class="text-sm text-[var(--cyan)]" />
-                    </div>
+          {/* Bento Grid — Stats Row 1: Balance 8col / Burn Rate 4col */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            {/* Balance — 8 cols */}
+            <div
+              className="md:col-span-8 doppelrand animate-fade-in-up"
+              style={{ animationDelay: "100ms" }}
+            >
+              <div className="doppelrand-inner p-8 md:p-10 flex flex-col justify-between h-full min-h-[220px]">
+                <div className="flex items-center justify-between mb-8">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/30">Balance</p>
+                  <div className="w-10 h-10 rounded-full bg-[var(--cyan)]/5 border border-[var(--cyan)]/10 flex items-center justify-center">
+                    <iconify-icon icon="lucide:wallet" class="text-[var(--cyan)]" />
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{item.value}</h3>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-2">Total Capital</p>
+                  <h3 className="text-[clamp(2.5rem,6vw,5rem)] font-black text-white tracking-tight leading-none">
+                    Rs. {(s?.balance || 0).toLocaleString()}
+                  </h3>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Burn Rate — 4 cols */}
+            <div
+              className="md:col-span-4 doppelrand animate-fade-in-up"
+              style={{ animationDelay: "175ms" }}
+            >
+              <div className="doppelrand-inner p-8 flex flex-col justify-between h-full min-h-[220px]">
+                <div className="flex items-center justify-between mb-8">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/30">Burn Rate</p>
+                  <div className="w-10 h-10 rounded-full bg-red-400/5 border border-red-400/10 flex items-center justify-center">
+                    <iconify-icon icon="lucide:flame" class="text-red-400/60" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-2">Daily Average</p>
+                  <h3 className="text-[clamp(2rem,5vw,4rem)] font-black text-red-400/70 tracking-tight leading-none">
+                    Rs. {burnRate.toLocaleString()}
+                  </h3>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bento Grid — Stats Row 2: Income 4col / Expenses 8col */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            {/* Income — 4 cols */}
+            <div
+              className="md:col-span-4 doppelrand animate-fade-in-up"
+              style={{ animationDelay: "250ms" }}
+            >
+              <div className="doppelrand-inner p-8 flex flex-col justify-between h-full min-h-[180px]">
+                <div className="flex items-center justify-between mb-6">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/30">Income</p>
+                  <div className="w-10 h-10 rounded-full bg-[var(--cyan)]/5 border border-[var(--cyan)]/10 flex items-center justify-center">
+                    <iconify-icon icon="lucide:trending-up" class="text-[var(--cyan)]" />
+                  </div>
+                </div>
+                <h3 className="text-3xl font-black text-[var(--cyan)] tracking-tight">
+                  Rs. {(s?.totalIncome || 0).toLocaleString()}
+                </h3>
+              </div>
+            </div>
+
+            {/* Expenses — 8 cols */}
+            <div
+              className="md:col-span-8 doppelrand animate-fade-in-up"
+              style={{ animationDelay: "325ms" }}
+            >
+              <div className="doppelrand-inner p-8 flex flex-col justify-between h-full min-h-[180px]">
+                <div className="flex items-center justify-between mb-6">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/30">Expenses</p>
+                  <div className="w-10 h-10 rounded-full bg-red-400/5 border border-red-400/10 flex items-center justify-center">
+                    <iconify-icon icon="lucide:credit-card" class="text-red-400/60" />
+                  </div>
+                </div>
+                <h3 className="text-4xl font-black text-white/80 tracking-tight">
+                  Rs. {(s?.totalExpenses || 0).toLocaleString()}
+                </h3>
+                <div className="mt-4 flex items-center gap-3">
+                  <span className="text-[10px] uppercase tracking-wider text-white/20 px-2 py-0.5 rounded-full bg-white/[0.03] border border-white/[0.04]">
+                    {s?.transactionCount || 0} transactions
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Quick Add */}
-          <div className="doppelrand animate-fade-in-up delay-200">
+          <div className="doppelrand animate-fade-in-up delay-300">
             <div className="doppelrand-inner p-6 md:p-8">
               <div className="flex items-center justify-between mb-5">
                 <p className="text-xs uppercase tracking-[0.15em] text-white/30">Quick Add</p>
@@ -170,7 +235,7 @@ export default function DashboardPage() {
                     placeholder="Description"
                     value={newTx.description}
                     onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
-                    className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm placeholder:text-white/15 font-light"
+                    className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm placeholder:text-white/15 font-light focus:border-[var(--cyan)]/30 focus:shadow-[0_0_20px_rgba(0,255,255,0.06)] transition-all duration-300"
                   />
                   <select
                     value={newTx.category}
@@ -186,7 +251,7 @@ export default function DashboardPage() {
                     placeholder="Amount (PKR)"
                     value={newTx.amount}
                     onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
-                    className="w-40 bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm placeholder:text-white/15 font-light"
+                    className="w-40 bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm placeholder:text-white/15 font-light focus:border-[var(--cyan)]/30 transition-all duration-300"
                   />
                   <button
                     onClick={addTransaction}
@@ -202,18 +267,20 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Charts Row — Donut + Area */}
+          {/* Charts Row — Allocation 4col / Flow Dynamics 8col */}
           {s && Object.keys(s.categoryTotals).length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up delay-300">
-              <div className="doppelrand">
-                <div className="doppelrand-inner p-6 md:p-8">
-                  <p className="text-xs uppercase tracking-[0.15em] text-white/30 mb-6">Spending by Category</p>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 animate-fade-in-up delay-300">
+              {/* Allocation — 4 cols */}
+              <div className="md:col-span-4 doppelrand">
+                <div className="doppelrand-inner p-6 md:p-8 h-full">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/30 mb-6">Allocation</p>
                   <DonutChart data={s.categoryTotals} total={s.totalExpenses} />
                 </div>
               </div>
-              <div className="doppelrand">
-                <div className="doppelrand-inner p-6 md:p-8">
-                  <p className="text-xs uppercase tracking-[0.15em] text-white/30 mb-6">Income vs Expenses</p>
+              {/* Flow Dynamics — 8 cols */}
+              <div className="md:col-span-8 doppelrand">
+                <div className="doppelrand-inner p-6 md:p-8 h-full">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/30 mb-6">Flow Dynamics</p>
                   <SpendingAreaChart transactions={data?.transactions || []} />
                   <div className="flex items-center gap-5 mt-4">
                     <div className="flex items-center gap-2">
@@ -264,7 +331,8 @@ export default function DashboardPage() {
                   {data.transactions.slice(-10).reverse().map((tx, i) => (
                     <div
                       key={tx._id}
-                      className="flex items-center justify-between px-8 py-4 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.01] transition-colors duration-300"
+                      className="group flex items-center justify-between px-8 py-4 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.02] transition-all duration-300 hover:translate-x-2"
+                      style={{ animationDelay: `${450 + i * 40}ms` }}
                     >
                       <div className="flex items-center gap-4 min-w-0">
                         <span className="text-[11px] text-white/15 w-20 shrink-0 font-mono">{tx.date}</span>
