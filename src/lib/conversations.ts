@@ -38,36 +38,43 @@ function writeAll(userId: string, data: Conversation[]) {
   writeFileSync(getFile(userId), JSON.stringify(data, null, 2));
 }
 
+async function tryMongo<T>(fn: () => Promise<T>): Promise<T | null> {
+  if (!isMongoAvailable()) return null;
+  try { return await fn(); } catch { return null; }
+}
+
 // ---- Public API ----
 
 export async function getConversations(userId: string): Promise<Conversation[]> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     const convs = await db.collection("conversations").find({ userId }).sort({ updatedAt: -1 }).toArray();
     return convs.map((c: any) => ({ ...c, _id: c._id?.toString() || c._id })) as Conversation[];
-  }
+  });
+  if (mongoResult) return mongoResult;
   return readAll(userId).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 }
 
 export async function getConversation(userId: string, id: string): Promise<Conversation | null> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     const conv = await db.collection("conversations").findOne({ _id: id, userId } as any);
     return conv ? { ...conv, _id: (conv._id as any)?.toString() || conv._id } as Conversation : null;
-  }
+  });
+  if (mongoResult !== null) return mongoResult;
   return readAll(userId).find(c => c._id === id) || null;
 }
 
 export async function saveConversation(userId: string, conv: Conversation): Promise<void> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     await db.collection("conversations").updateOne(
       { _id: conv._id, userId } as any,
       { $set: conv as any },
       { upsert: true }
     );
-    return;
-  }
+  });
+  if (mongoResult !== null) return;
   const all = readAll(userId);
   const idx = all.findIndex(c => c._id === conv._id);
   if (idx >= 0) all[idx] = conv;
@@ -89,11 +96,12 @@ export async function createConversation(userId: string, title: string, messages
 }
 
 export async function deleteConversation(userId: string, id: string): Promise<boolean> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     const result = await db.collection("conversations").deleteOne({ _id: id, userId } as any);
     return result.deletedCount > 0;
-  }
+  });
+  if (mongoResult !== null) return mongoResult;
   const all = readAll(userId);
   const filtered = all.filter(c => c._id !== id);
   if (filtered.length === all.length) return false;
@@ -102,15 +110,15 @@ export async function deleteConversation(userId: string, id: string): Promise<bo
 }
 
 export async function clearAllUserData(userId: string) {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     await Promise.all([
       db.collection("transactions").deleteMany({ userId }),
       db.collection("targets").deleteMany({ userId }),
       db.collection("conversations").deleteMany({ userId }),
     ]);
-    return;
-  }
+  });
+  if (mongoResult !== null) return;
   ensureDir();
   for (const type of ["transactions", "targets", "conversations"]) {
     const p = join(DATA_DIR, `${userId}-${type}.json`);

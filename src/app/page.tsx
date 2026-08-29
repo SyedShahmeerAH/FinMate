@@ -9,10 +9,8 @@ import SuggestedQueries from "@/components/SuggestedQueries";
 import ThreadDivider from "@/components/ThreadDivider";
 import UserQueryCard from "@/components/UserQueryCard";
 import AIResponseCard from "@/components/AIResponseCard";
-import ActionButtons from "@/components/ActionButtons";
 import { useAuth } from "@/contexts/AuthContext";
-
-type AppState = "greeting" | "input_active" | "response" | "executed";
+import LandingPage from "@/components/LandingPage";
 
 interface Message {
   role: "user" | "assistant";
@@ -33,18 +31,14 @@ interface Conversation {
 }
 
 export default function Home() {
-  const { user } = useAuth();
-  const [appState, setAppState] = useState<AppState>("greeting");
+  const { user, loading: authLoading } = useAuth();
   const [userQuery, setUserQuery] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [executedActions, setExecutedActions] = useState<ExecutedAction[]>([]);
-  const [dataVersion, setDataVersion] = useState(0);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -71,12 +65,9 @@ export default function Home() {
       });
       if (!res.ok) return;
       const conv = await res.json();
-      setChatHistory(conv.messages);
       setMessages(conv.messages);
       setConversationId(conv._id);
-      setAppState("input_active");
       setShowHistory(false);
-      setAiResponse("");
       setExecutedActions([]);
       setUserQuery("");
     } catch { /* silent */ }
@@ -92,20 +83,17 @@ export default function Home() {
         headers: { Authorization: "Bearer " + token },
       });
       setConversations([]);
-      handleReset();
+      resetChat();
       window.location.reload();
     } catch { /* silent */ }
   };
 
   const handleQuerySubmit = async (query: string) => {
-    setUserQuery(query);
-    setAppState("response");
-    setIsLoading(true);
-    setAiResponse("");
-    setExecutedActions([]);
-
     const newMessages: Message[] = [...messages, { role: "user", content: query }];
     setMessages(newMessages);
+    setUserQuery(query);
+    setIsLoading(true);
+    setExecutedActions([]);
 
     try {
       abortControllerRef.current = new AbortController();
@@ -127,7 +115,6 @@ export default function Home() {
 
       const text = await response.text();
 
-      // Parse CONV_ID
       let finalText = text;
       const convMatch = text.match(/^\[CONV_ID:(.*?)\]\n/);
       if (convMatch) {
@@ -135,7 +122,6 @@ export default function Home() {
         finalText = text.substring(convMatch[0].length);
       }
 
-      // Parse ACTIONS
       const actMatch = finalText.match(/^\[ACTIONS_EXECUTED:(.*?)\]\n/);
       let actions: ExecutedAction[] = [];
       let displayText = finalText;
@@ -146,19 +132,16 @@ export default function Home() {
           success: !a.toLowerCase().includes("not found") && !a.toLowerCase().includes("failed"),
         }));
         displayText = finalText.substring(actMatch[0].length);
-        setDataVersion(v => v + 1);
       }
 
-      setAiResponse(displayText);
       setExecutedActions(actions);
       const updated = [...newMessages, { role: "assistant" as const, content: displayText }];
       setMessages(updated);
-      setChatHistory(updated);
-      setAppState("input_active");
       fetchConversations();
     } catch (error) {
       if (error instanceof Error && error.name !== "AbortError") {
-        setAiResponse("ERROR: Connection failed. Try again.");
+        const errorMsg = { role: "assistant" as const, content: "Connection failed. Try again." };
+        setMessages([...newMessages, errorMsg]);
       }
     } finally {
       setIsLoading(false);
@@ -166,17 +149,10 @@ export default function Home() {
     }
   };
 
-  const handleExecute = () => setAppState("executed");
-  const handleModify = () => setAppState("input_active");
-  const handleDiscussMore = () => setAppState("input_active");
-
-  const handleReset = () => {
-    setAppState("greeting");
+  const resetChat = () => {
     setExecutedActions([]);
     setUserQuery("");
-    setAiResponse("");
     setMessages([]);
-    setChatHistory([]);
     setConversationId(null);
   };
 
@@ -185,41 +161,70 @@ export default function Home() {
     setIsLoading(false);
   };
 
+  const isGreeting = messages.length === 0 && !isLoading;
+
+  // Show landing page for signed-out users
+  if (!authLoading && !user) {
+    return <LandingPage />;
+  }
+
+  // Show loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-mesh grain flex items-center justify-center">
+        <div className="text-center space-y-4 animate-fade-in-up">
+          <div className="w-12 h-12 rounded-full border-2 border-[var(--cyan)]/30 border-t-[var(--cyan)] animate-spin mx-auto" />
+          <p className="text-sm text-white/20">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Sidebar activeNav="ai" />
-      <main className="flex-1 h-screen overflow-y-auto bg-black p-4 md:p-16 pt-20 md:pt-16 bg-grid-pattern relative scroll-smooth">
-        <div className="max-w-6xl mx-auto flex flex-col gap-8 pb-32">
+      <main className="md:ml-[296px] min-h-screen p-6 md:p-12 lg:p-16">
+        <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-32">
 
-          {/* Greeting */}
-          {appState === "greeting" && chatHistory.length === 0 && (
-            <section className="flex flex-col gap-8">
+          {/* GREETING */}
+          {isGreeting && (
+            <section className="flex flex-col gap-10 pt-16 md:pt-24">
               <div className="space-y-6">
                 <StatusBadge
-                  status={isLoading ? "PROCESSING" : "LISTENING"}
+                  status="LISTENING"
                   user={user ? user.name.toUpperCase().replace(/\s+/g, "_") : "GUEST"}
                 />
                 <HeroSection
-                  headline={isLoading ? "Analyzing..." : user ? `Welcome, ${user.name}.` : "System Online."}
-                  subline={isLoading ? "Processing..." : "How can I optimize your capital?"}
+                  headline={user ? `Welcome, ${user.name}.` : "System Online."}
+                  subline="How can I optimize your capital?"
                 />
               </div>
-              <div className="flex flex-col gap-5 mt-4">
-                <AIInput onSubmit={handleQuerySubmit} disabled={isLoading} />
-                {!isLoading && <SuggestedQueries onSelect={(q) => handleQuerySubmit(q)} />}
-                {isLoading && (
-                  <button onClick={handleStop} className="border-2 border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-black px-6 py-3 font-mono text-base transition-colors uppercase w-fit">
-                    STOP_GENERATION
-                  </button>
-                )}
+              <div className="flex flex-col gap-5">
+                <AIInput onSubmit={handleQuerySubmit} disabled={false} />
+                <SuggestedQueries onSelect={(q) => handleQuerySubmit(q)} />
               </div>
             </section>
           )}
 
-          {/* Loaded chat history */}
-          {chatHistory.length > 0 && (
-            <section className="flex flex-col gap-6">
-              {chatHistory.map((msg, i) => (
+          {/* LOADING — only while waiting for API */}
+          {!isGreeting && isLoading && (
+            <section className="flex flex-col gap-6 pt-8">
+              <UserQueryCard query={userQuery} />
+              <AIResponseCard isLoading={true} responseText="" />
+              <button
+                onClick={handleStop}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-red-400/20 bg-red-400/5 text-red-400 text-sm hover:bg-red-400/10 transition-all duration-300 w-fit active:scale-[0.97]"
+              >
+                <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+                Stop
+              </button>
+            </section>
+          )}
+
+          {/* CONVERSATION — always renders when messages exist and not loading */}
+          {!isGreeting && !isLoading && (
+            <section className="flex flex-col gap-6 pt-8">
+              {messages.map((msg, i) => (
                 <div key={i} className="flex flex-col gap-4">
                   {i > 0 && <ThreadDivider />}
                   {msg.role === "user" ? (
@@ -229,66 +234,57 @@ export default function Home() {
                   )}
                 </div>
               ))}
-              {/* Show actions after last assistant message */}
-              {executedActions.length > 0 && !isLoading && (
-                <div className="border-2 border-[#00FFFF]/30 bg-[#00FFFF]/5 p-6">
-                  <p className="font-mono text-sm text-[#00FFFF] mb-4">ACTIONS_PERFORMED:</p>
-                  <div className="flex flex-col gap-2">
-                    {executedActions.map((a, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <span className={a.success ? "text-[#00FFFF]" : "text-red-500"}>{a.success ? "✓" : "✗"}</span>
-                        <span className="font-mono text-sm text-gray-300">{a.message}</span>
-                      </div>
-                    ))}
+
+              {executedActions.length > 0 && (
+                <div className="doppelrand">
+                  <div className="doppelrand-inner p-6">
+                    <p className="text-xs uppercase tracking-[0.15em] text-[var(--cyan)] mb-4">Actions Performed</p>
+                    <div className="flex flex-col gap-2">
+                      {executedActions.map((a, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <span className={`text-sm ${a.success ? "text-[var(--cyan)]" : "text-red-400"}`}>
+                            {a.success ? "\u2713" : "\u2717"}
+                          </span>
+                          <span className="text-sm text-white/40">{a.message}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
+
+              <div className="flex flex-col gap-5 mt-4">
+                <StatusBadge
+                  status="LISTENING"
+                  user={user ? user.name.toUpperCase().replace(/\s+/g, "_") : "GUEST"}
+                />
+                <AIInput onSubmit={handleQuerySubmit} disabled={false} />
+              </div>
             </section>
           )}
 
-          {/* Input when continuing a conversation */}
-          {appState === "input_active" && (
-            <section className="flex flex-col gap-5 mt-4">
-              <StatusBadge status={isLoading ? "PROCESSING" : "LISTENING"} user={user ? user.name.toUpperCase().replace(/\s+/g, "_") : "GUEST"} />
-              <AIInput onSubmit={handleQuerySubmit} disabled={isLoading} />
-              {isLoading && (
-                <button onClick={handleStop} className="border-2 border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-black px-6 py-3 font-mono text-base transition-colors uppercase w-fit">
-                  STOP_GENERATION
-                </button>
-              )}
-            </section>
-          )}
-
-          {/* Loading state during response */}
-          {appState === "response" && isLoading && (
-            <section className="flex flex-col gap-6">
-              <UserQueryCard query={userQuery} />
-              <AIResponseCard isLoading={true} responseText="" />
-              <button onClick={handleStop} className="border-2 border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-black px-6 py-3 font-mono text-base transition-colors uppercase w-fit">
-                STOP_GENERATION
-              </button>
-            </section>
-          )}
-
-          {/* History + Clear - Bottom */}
+          {/* HISTORY + CLEAR */}
           {user && (
-            <section className="border-t-2 border-gray-800 pt-8 mt-8 flex flex-col gap-4">
+            <section className="border-t border-white/[0.04] pt-8 mt-8 flex flex-col gap-4">
               {conversations.length > 0 && (
                 <>
-                  <button onClick={() => setShowHistory(!showHistory)} className="font-mono text-sm text-gray-500 hover:text-[#00FFFF] transition-colors text-left">
-                    {showHistory ? "HIDE" : "PAST_CONVERSATIONS"} ({conversations.length})
+                  <button
+                    onClick={() => setShowHistory(!showHistory)}
+                    className="text-xs text-white/20 hover:text-[var(--cyan)] transition-colors duration-300 text-left"
+                  >
+                    {showHistory ? "Hide" : "Past conversations"} ({conversations.length})
                   </button>
                   {showHistory && (
                     <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
-                      {conversations.map(conv => (
+                      {conversations.map((conv) => (
                         <button
                           key={conv._id}
                           onClick={() => loadConversation(conv._id)}
-                          className="text-left border border-gray-800 hover:border-[#00FFFF] p-4 transition-colors"
+                          className="text-left rounded-2xl border border-white/[0.04] hover:border-white/[0.1] bg-white/[0.01] hover:bg-white/[0.03] px-5 py-4 transition-all duration-300"
                         >
-                          <p className="font-mono text-sm text-white truncate">{conv.title}</p>
-                          <p className="font-mono text-xs text-gray-600">
-                            {new Date(conv.updatedAt).toLocaleDateString()} | {conv.messages.length} msgs
+                          <p className="text-sm text-white/60 truncate">{conv.title}</p>
+                          <p className="text-[11px] text-white/15 mt-1">
+                            {new Date(conv.updatedAt).toLocaleDateString()} · {conv.messages.length} messages
                           </p>
                         </button>
                       ))}
@@ -296,8 +292,11 @@ export default function Home() {
                   )}
                 </>
               )}
-              <button onClick={clearAllData} className="font-mono text-xs text-red-500/50 hover:text-red-500 transition-colors text-left mt-4">
-                CLEAR_ALL_DATA
+              <button
+                onClick={clearAllData}
+                className="text-xs text-white/10 hover:text-red-400/60 transition-colors duration-300 text-left mt-4"
+              >
+                Clear all data
               </button>
             </section>
           )}

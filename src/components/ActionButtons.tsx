@@ -10,26 +10,27 @@ export default function ActionButtons({
   onModify,
 }: ActionButtonsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-8 border-t-2 border-dashed border-gray-700">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-8 border-t border-white/[0.04] animate-fade-in-up delay-200">
+      {/* Execute — pill with trailing icon */}
       <button
         onClick={onExecute}
-        className="w-full bg-[#00FFFF] text-black text-2xl md:text-3xl font-black py-6 px-8 hover:bg-white border-2 border-[#00FFFF] hover:border-white transition-colors uppercase flex items-center justify-between group shadow-offset-lg shadow-offset-lg-hover"
+        className="group flex items-center justify-between bg-[var(--cyan)] text-black px-8 py-4 rounded-full font-medium text-base hover:shadow-[0_0_30px_rgba(0,255,255,0.2)] transition-all duration-500 ease-[var(--ease-fluid)] active:scale-[0.97]"
       >
-        <span>EXECUTE_PLAN</span>
-        <iconify-icon
-          icon="lucide:check-square"
-          class="text-4xl group-hover:scale-110 transition-transform"
-        />
+        <span>Execute Plan</span>
+        <span className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-105">
+          <iconify-icon icon="lucide:check" class="text-sm" />
+        </span>
       </button>
+
+      {/* Modify — glass pill */}
       <button
         onClick={onModify}
-        className="w-full bg-black text-white text-2xl md:text-3xl font-black py-6 px-8 hover:bg-gray-900 border-2 border-white transition-colors uppercase flex items-center justify-between group"
+        className="group flex items-center justify-between bg-white/[0.04] border border-white/[0.06] text-white px-8 py-4 rounded-full font-medium text-base hover:bg-white/[0.08] transition-all duration-500 ease-[var(--ease-fluid)] active:scale-[0.97]"
       >
-        <span>MODIFY_PARAMS</span>
-        <iconify-icon
-          icon="lucide:sliders-horizontal"
-          class="text-4xl group-hover:rotate-90 transition-transform"
-        />
+        <span>Modify</span>
+        <span className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center transition-all duration-300 group-hover:rotate-90">
+          <iconify-icon icon="lucide:sliders" class="text-sm" />
+        </span>
       </button>
     </div>
   );

@@ -7,117 +7,87 @@ export default function AIResponseCard({
   isLoading = false,
   responseText = "",
 }: AIResponseCardProps) {
-  // Parse response into structured parts
   const parseResponse = (text: string) => {
     if (!text) return null;
-
-    // Try to extract amount
     const amountMatch = text.match(/Rs\.\s*[\d,]+/);
     const amount = amountMatch ? amountMatch[0] : null;
-
-    // Split into lines for analysis
     const lines = text.split("\n").filter((line) => line.trim());
-
     return { amount, lines };
   };
 
   const parsed = parseResponse(responseText);
 
   return (
-    <div className="border-2 border-[#00FFFF] bg-black relative group shadow-offset-cyan mt-4">
-      {/* Header bar */}
-      <div className="absolute top-0 left-0 bg-[#00FFFF] text-black font-mono text-sm md:text-base px-6 py-2 font-bold border-b-2 border-r-2 border-[#00FFFF] flex items-center gap-3">
-        <div className={`w-2 h-2 bg-black rounded-full ${isLoading ? "animate-blink" : ""}`} />
-        SYS_AI_ADVISOR // {isLoading ? "PROCESSING" : "RESPONSE"}
-      </div>
+    <div>
+      <div className="doppelrand">
+        <div className="doppelrand-inner p-8 md:p-12">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-8 h-8 rounded-full bg-[var(--cyan)]/10 border border-[var(--cyan)]/20 flex items-center justify-center">
+              <div className={`w-2 h-2 rounded-full bg-[var(--cyan)] ${isLoading ? "animate-blink" : ""}`} />
+            </div>
+            <span className="text-xs uppercase tracking-[0.15em] text-white/30">
+              {isLoading ? "Thinking..." : "Advisor"}
+            </span>
+          </div>
 
-      <div className="p-8 md:p-14 pt-20 md:pt-24">
-        <div className="flex flex-col gap-12">
           {/* Loading State */}
           {isLoading && !responseText && (
-            <div className="flex gap-6 md:gap-10 items-start">
-              <iconify-icon
-                icon="lucide:loader"
-                class="text-5xl md:text-7xl text-[#00FFFF] shrink-0 mt-2 animate-spin"
-              />
-              <div className="space-y-4 w-full">
-                <p className="font-mono text-xl md:text-2xl text-gray-500">
-                  {">"} CONNECTING TO AI SYSTEM...
-                </p>
-                <p className="font-mono text-lg md:text-xl text-gray-600">
-                  {">"} ANALYZING YOUR REQUEST
-                </p>
-              </div>
+            <div className="space-y-4">
+              <div className="h-4 w-3/4 rounded-full bg-white/[0.03] animate-shimmer" />
+              <div className="h-4 w-1/2 rounded-full bg-white/[0.03] animate-shimmer delay-100" />
+              <div className="h-4 w-2/3 rounded-full bg-white/[0.03] animate-shimmer delay-200" />
             </div>
           )}
 
           {/* Response Content */}
           {responseText && (
-            <div className="flex gap-6 md:gap-10 items-start">
-              <iconify-icon
-                icon="lucide:terminal-square"
-                class="text-5xl md:text-7xl text-[#00FFFF] shrink-0 mt-2"
-              />
-              <div className="space-y-8 w-full">
-                {/* Main response text */}
-                <div className="font-mono text-lg md:text-2xl text-gray-300 leading-relaxed border-l-4 border-[#00FFFF] pl-6 md:pl-8 space-y-4">
-                  {parsed?.lines.map((line, i) => {
-                    const isAction = line.includes("ACTION") || line.includes("RECOMMEND") || line.includes("SAVE");
-                    const isAmount = line.includes("$");
+            <div className="space-y-6">
+              <div className="border-l-2 border-[var(--cyan)]/30 pl-6 space-y-4">
+                {parsed?.lines.map((line, i) => {
+                  const isAction = line.includes("ACTION") || line.includes("RECOMMEND") || line.includes("SAVE");
+                  const isAmount = line.includes("Rs.");
 
-                    if (isAction) {
-                      return (
-                        <p
-                          key={i}
-                          className="text-black font-bold bg-[#00FFFF] inline-block px-4 py-2 mt-2"
-                        >
-                          {line}
-                        </p>
-                      );
-                    }
-
-                    if (isAmount) {
-                      return (
-                        <p key={i} className="text-[#00FFFF] font-bold">
-                          {line}
-                        </p>
-                      );
-                    }
-
+                  if (isAction) {
                     return (
-                      <p key={i} className="text-gray-400">
+                      <p key={i} className="inline-block px-4 py-2 rounded-xl bg-[var(--cyan)]/10 border border-[var(--cyan)]/20 text-[var(--cyan)] text-sm font-medium">
                         {line}
                       </p>
                     );
-                  })}
-
-                  {/* Streaming cursor */}
-                  {isLoading && (
-                    <span className="inline-block w-3 h-5 bg-[#00FFFF] animate-pulse ml-1" />
-                  )}
-                </div>
-
-                {/* Amount highlight if found */}
-                {parsed?.amount && !isLoading && (
-                  <h3 className="text-4xl md:text-6xl font-black tracking-tight text-white uppercase leading-[1.2]">
-                    Identified savings of{" "}
-                    <span className="text-[#00FFFF]">{parsed.amount}</span>
-                  </h3>
+                  }
+                  if (isAmount) {
+                    return (
+                      <p key={i} className="text-[var(--cyan)] font-medium">
+                        {line}
+                      </p>
+                    );
+                  }
+                  return (
+                    <p key={i} className="text-white/50 font-light leading-relaxed">
+                      {line}
+                    </p>
+                  );
+                })}
+                {isLoading && (
+                  <span className="inline-block w-2 h-4 bg-[var(--cyan)]/60 animate-pulse rounded-sm" />
                 )}
               </div>
+
+              {parsed?.amount && !isLoading && (
+                <div className="pt-4">
+                  <p className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Savings of{" "}
+                    <span className="text-[var(--cyan)]">{parsed.amount}</span>
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
           {/* Empty state */}
           {!isLoading && !responseText && (
-            <div className="text-center py-12">
-              <iconify-icon
-                icon="lucide:bot"
-                class="text-6xl text-gray-700 mb-4"
-              />
-              <p className="font-mono text-gray-500 text-lg">
-                AWAITING YOUR QUERY...
-              </p>
+            <div className="text-center py-8">
+              <p className="text-white/20 text-sm">Awaiting your query...</p>
             </div>
           )}
         </div>

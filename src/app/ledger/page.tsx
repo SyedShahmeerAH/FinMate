@@ -73,10 +73,10 @@ export default function LedgerPage() {
     return (
       <>
         <Sidebar activeNav="ledger" />
-        <main className="flex-1 h-screen overflow-y-auto bg-black p-4 md:p-16 pt-20 md:pt-16 bg-grid-pattern">
-          <div className="max-w-6xl mx-auto flex flex-col items-center justify-center h-full gap-4">
-            <iconify-icon icon="lucide:loader-2" class="text-6xl text-[#00FFFF] animate-spin" />
-            <p className="font-mono text-xl text-gray-500">LOADING LEDGER...</p>
+        <main className="md:ml-[296px] min-h-screen flex items-center justify-center p-6">
+          <div className="text-center space-y-4 animate-fade-in-up">
+            <div className="w-12 h-12 rounded-full border-2 border-[var(--cyan)]/30 border-t-[var(--cyan)] animate-spin mx-auto" />
+            <p className="text-sm text-white/20">Loading ledger...</p>
           </div>
         </main>
       </>
@@ -87,10 +87,13 @@ export default function LedgerPage() {
     return (
       <>
         <Sidebar activeNav="ledger" />
-        <main className="flex-1 h-screen overflow-y-auto bg-black p-4 md:p-16 pt-20 md:pt-16 bg-grid-pattern">
-          <div className="max-w-6xl mx-auto flex flex-col items-center justify-center h-full gap-4">
-            <p className="font-mono text-xl text-gray-500">LOGIN TO VIEW LEDGER</p>
-            <a href="/login" className="font-mono text-[#00FFFF] hover:text-white transition-colors">LOGIN →</a>
+        <main className="md:ml-[296px] min-h-screen flex items-center justify-center p-6">
+          <div className="text-center space-y-4 animate-fade-in-up">
+            <p className="text-lg text-white/30">Sign in to view ledger</p>
+            <a href="/login" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/[0.06] border border-white/[0.08] text-[var(--cyan)] text-sm hover:bg-white/[0.1] transition-all duration-300">
+              Sign in
+              <iconify-icon icon="lucide:arrow-right" class="text-xs" />
+            </a>
           </div>
         </main>
       </>
@@ -102,121 +105,119 @@ export default function LedgerPage() {
   return (
     <>
       <Sidebar activeNav="ledger" />
-      <main className="flex-1 h-screen overflow-y-auto bg-black p-4 md:p-16 pt-20 md:pt-16 bg-grid-pattern relative scroll-smooth">
-        <div className="max-w-6xl mx-auto flex flex-col gap-16 pb-20">
-          <section className="flex flex-col gap-8">
-            <div className="inline-flex border-2 border-gray-700 px-4 py-2 bg-[#0a0a0a]">
-              <p className="font-mono text-sm md:text-base text-[#00FFFF] font-bold">
-                {">"} MODULE: LEDGER // {user.name.toUpperCase()}
-              </p>
+      <main className="md:ml-[296px] min-h-screen p-6 md:p-12 lg:p-16">
+        <div className="max-w-6xl mx-auto flex flex-col gap-12 pb-20">
+
+          {/* Header */}
+          <section className="flex flex-col gap-6 animate-fade-in-up">
+            <div className="eyebrow">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)]" />
+              Ledger — {user.name}
             </div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tight leading-[1.1]">
+            <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.05]">
               Ledger
-              <br />
-              <span className="text-gray-500">All transactions.</span>
             </h1>
           </section>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="border-2 border-gray-700 p-8 bg-[#0a0a0a]">
-              <p className="font-mono text-sm text-gray-500 mb-4 border-b border-gray-700 pb-2">TOTAL</p>
-              <h3 className={`text-4xl font-black ${total >= 0 ? "text-[#00FFFF]" : "text-red-500"}`}>
-                Rs. {total.toLocaleString()}
-              </h3>
+          {/* Stats Row */}
+          <div className="grid grid-cols-2 gap-4 animate-fade-in-up delay-100">
+            <div className="doppelrand">
+              <div className="doppelrand-inner p-6">
+                <p className="text-xs uppercase tracking-[0.15em] text-white/30 mb-3">Total</p>
+                <h3 className={`text-2xl md:text-3xl font-bold ${total >= 0 ? "text-[var(--cyan)]" : "text-red-400/70"}`}>
+                  Rs. {total.toLocaleString()}
+                </h3>
+              </div>
             </div>
-            <div className="border-2 border-gray-700 p-8 bg-[#0a0a0a]">
-              <p className="font-mono text-sm text-gray-500 mb-4 border-b border-gray-700 pb-2">TRANSACTIONS</p>
-              <h3 className="text-4xl font-black text-white">{transactions.length}</h3>
+            <div className="doppelrand">
+              <div className="doppelrand-inner p-6">
+                <p className="text-xs uppercase tracking-[0.15em] text-white/30 mb-3">Transactions</p>
+                <h3 className="text-2xl md:text-3xl font-bold text-white">{transactions.length}</h3>
+              </div>
             </div>
           </div>
 
           {/* Add Transaction */}
-          <div className="border-2 border-gray-700 p-6 bg-[#0a0a0a]">
-            <div className="flex items-center justify-between mb-4">
-              <p className="font-mono text-sm text-gray-500">ADD_TRANSACTION</p>
-              <button
-                onClick={() => setShowAddTx(!showAddTx)}
-                className="text-[#00FFFF] hover:text-white font-mono text-sm"
-              >
-                {showAddTx ? "CANCEL" : "+ ADD"}
-              </button>
-            </div>
-            {showAddTx && (
-              <div className="flex flex-col md:flex-row gap-4">
-                <input
-                  type="text"
-                  placeholder="DESCRIPTION"
-                  value={newTx.description}
-                  onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
-                  className="flex-1 bg-black border-2 border-gray-700 text-white p-3 font-mono text-sm focus:border-[#00FFFF] outline-none"
-                />
-                <select
-                  value={newTx.category}
-                  onChange={(e) => setNewTx({ ...newTx, category: e.target.value })}
-                  className="bg-black border-2 border-gray-700 text-white p-3 font-mono text-sm focus:border-[#00FFFF] outline-none"
-                >
-                  {["FOOD", "SUBS", "EDU", "TRANSIT", "ENTERTAIN", "UTILITIES", "OTHER"].map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  placeholder="AMOUNT (PKR)"
-                  value={newTx.amount}
-                  onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
-                  className="w-40 bg-black border-2 border-gray-700 text-white p-3 font-mono text-sm focus:border-[#00FFFF] outline-none"
-                />
-                <input
-                  type="date"
-                  value={newTx.date}
-                  onChange={(e) => setNewTx({ ...newTx, date: e.target.value })}
-                  className="bg-black border-2 border-gray-700 text-white p-3 font-mono text-sm focus:border-[#00FFFF] outline-none"
-                />
+          <div className="doppelrand animate-fade-in-up delay-150">
+            <div className="doppelrand-inner p-6 md:p-8">
+              <div className="flex items-center justify-between mb-5">
+                <p className="text-xs uppercase tracking-[0.15em] text-white/30">Add Transaction</p>
                 <button
-                  onClick={addTransaction}
-                  className="bg-[#00FFFF] text-black px-6 py-3 font-bold hover:bg-white transition-colors"
+                  onClick={() => setShowAddTx(!showAddTx)}
+                  className="text-xs text-[var(--cyan)] hover:text-white transition-colors duration-300"
                 >
-                  ADD
+                  {showAddTx ? "Cancel" : "+ Add"}
                 </button>
               </div>
-            )}
+              {showAddTx && (
+                <div className="flex flex-col md:flex-row gap-3 animate-fade-in-up">
+                  <input type="text" placeholder="Description" value={newTx.description}
+                    onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
+                    className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm placeholder:text-white/15 font-light" />
+                  <select value={newTx.category}
+                    onChange={(e) => setNewTx({ ...newTx, category: e.target.value })}
+                    className="bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm appearance-none">
+                    {["FOOD", "SUBS", "EDU", "TRANSIT", "ENTERTAIN", "UTILITIES", "OTHER"].map(c => (
+                      <option key={c} value={c} className="bg-black">{c}</option>
+                    ))}
+                  </select>
+                  <input type="number" placeholder="Amount (PKR)" value={newTx.amount}
+                    onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
+                    className="w-40 bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm placeholder:text-white/15 font-light" />
+                  <input type="date" value={newTx.date}
+                    onChange={(e) => setNewTx({ ...newTx, date: e.target.value })}
+                    className="bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm appearance-none" />
+                  <button onClick={addTransaction}
+                    className="group flex items-center justify-center gap-2 bg-[var(--cyan)] text-black px-6 py-3 rounded-full font-medium text-sm hover:shadow-[0_0_20px_rgba(0,255,255,0.15)] transition-all duration-500 active:scale-[0.97]">
+                    Add
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Transaction List */}
-          <div className="border-2 border-gray-700 bg-[#0a0a0a]">
-            <div className="p-6 border-b-2 border-gray-700">
-              <p className="font-mono text-sm text-gray-500">ALL_TRANSACTIONS</p>
+          <div className="doppelrand animate-fade-in-up delay-200">
+            <div className="doppelrand-inner">
+              <div className="px-8 py-5 border-b border-white/[0.04]">
+                <p className="text-xs uppercase tracking-[0.15em] text-white/30">All Transactions</p>
+              </div>
+              {transactions.length === 0 ? (
+                <div className="p-12 text-center">
+                  <p className="text-white/20 text-lg">No transactions yet</p>
+                  <p className="text-white/10 text-sm mt-2">Add one or use AI to track spending</p>
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  {transactions.map((tx, i) => (
+                    <div
+                      key={tx._id}
+                      className="flex items-center justify-between px-8 py-4 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.01] transition-colors duration-300 animate-fade-in-up"
+                      style={{ animationDelay: `${250 + i * 30}ms` }}
+                    >
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <span className="text-[11px] text-white/15 w-20 shrink-0 font-mono">{tx.date}</span>
+                        <span className="text-sm text-white/60 truncate">{tx.description}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-white/20 px-2 py-0.5 rounded-full bg-white/[0.03] border border-white/[0.04] shrink-0">
+                          {tx.category}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        <span className={`text-sm font-medium ${tx.amount >= 0 ? "text-[var(--cyan)]" : "text-red-400/70"}`}>
+                          {tx.amount >= 0 ? "+" : ""}Rs. {tx.amount.toLocaleString()}
+                        </span>
+                        <button
+                          onClick={() => deleteTransaction(tx._id)}
+                          className="text-white/10 hover:text-red-400 transition-colors duration-300 p-1"
+                        >
+                          <iconify-icon icon="lucide:trash-2" class="text-sm" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            {transactions.length === 0 ? (
-              <div className="p-12 text-center">
-                <p className="font-mono text-xl text-gray-500">NO TRANSACTIONS YET</p>
-                <p className="font-mono text-sm text-gray-600 mt-2">Add one or use AI to track spending</p>
-              </div>
-            ) : (
-              <div className="flex flex-col">
-                {transactions.map(tx => (
-                  <div key={tx._id} className="flex items-center justify-between p-4 md:p-6 border-b border-gray-800 hover:bg-white/5 transition-colors">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <span className="font-mono text-xs text-gray-600 shrink-0">{tx.date}</span>
-                      <span className="font-mono text-sm text-white truncate">{tx.description}</span>
-                      <span className="font-mono text-xs text-gray-500 border border-gray-700 px-2 py-0.5 shrink-0">{tx.category}</span>
-                    </div>
-                    <div className="flex items-center gap-4 shrink-0">
-                      <span className={`font-mono font-bold ${tx.amount >= 0 ? "text-[#00FFFF]" : "text-red-500"}`}>
-                        {tx.amount >= 0 ? "+" : ""}Rs. {tx.amount.toLocaleString()}
-                      </span>
-                      <button
-                        onClick={() => deleteTransaction(tx._id)}
-                        className="text-gray-600 hover:text-red-500 transition-colors"
-                      >
-                        <iconify-icon icon="lucide:trash-2" class="text-lg" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </main>

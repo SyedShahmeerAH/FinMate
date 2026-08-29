@@ -5,15 +5,17 @@ interface UserQueryCardProps {
 
 export default function UserQueryCard({
   query,
-  timestamp = "10:42 AM",
+  timestamp,
 }: UserQueryCardProps) {
+  const time = timestamp || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
   return (
     <div className="flex justify-end">
-      <div className="border-2 border-gray-700 p-8 md:p-10 bg-[#0a0a0a] max-w-4xl relative shadow-offset">
-        <div className="absolute -top-4 right-8 bg-black px-4 text-gray-500 font-mono text-sm border-2 border-gray-700">
-          USER_QUERY // {timestamp}
+      <div className="max-w-2xl rounded-[2rem] bg-white/[0.03] border border-white/[0.06] px-8 py-6 relative">
+        <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-[var(--bg)] border border-white/[0.06] text-[10px] uppercase tracking-widest text-white/20">
+          {time}
         </div>
-        <p className="font-mono text-2xl md:text-3xl text-white font-bold leading-relaxed uppercase">
+        <p className="text-base md:text-lg text-white/80 font-light leading-relaxed">
           &ldquo;{query}&rdquo;
         </p>
       </div>

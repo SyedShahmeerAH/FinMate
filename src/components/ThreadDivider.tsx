@@ -3,15 +3,15 @@ interface ThreadDividerProps {
 }
 
 export default function ThreadDivider({
-  label = "SESSION_HISTORY",
+  label = "Previous",
 }: ThreadDividerProps) {
   return (
-    <div className="w-full flex items-center gap-6 opacity-60 my-4">
-      <div className="h-px flex-1 border-b-2 border-dashed border-gray-700" />
-      <span className="text-gray-500 font-mono text-sm md:text-base font-bold uppercase tracking-widest">
+    <div className="flex items-center gap-4 py-2">
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+      <span className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-medium">
         {label}
       </span>
-      <div className="h-px flex-1 border-b-2 border-dashed border-gray-700" />
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
     </div>
   );
 }

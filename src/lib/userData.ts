@@ -44,24 +44,31 @@ function saveJson(filePath: string, data: unknown[]) {
   writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+async function tryMongo<T>(fn: () => Promise<T>): Promise<T | null> {
+  if (!isMongoAvailable()) return null;
+  try { return await fn(); } catch { return null; }
+}
+
 // ---- Transactions ----
 
 export async function getTransactions(userId: string): Promise<Transaction[]> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     const txs = await db.collection("transactions").find({ userId }).sort({ date: -1 }).toArray();
     return txs.map((t: any) => ({ ...t, _id: t._id?.toString() || t._id })) as Transaction[];
-  }
+  });
+  if (mongoResult) return mongoResult;
   return loadJson<Transaction>(getUserFile(userId, "transactions"));
 }
 
 export async function addTransaction(userId: string, tx: Omit<Transaction, "_id" | "userId">): Promise<Transaction> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     const doc = { ...tx, userId, _id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 9)}` };
     await db.collection("transactions").insertOne(doc as any);
     return doc;
-  }
+  });
+  if (mongoResult) return mongoResult;
   const transactions = loadJson<Transaction>(getUserFile(userId, "transactions"));
   const newTx: Transaction = { ...tx, _id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`, userId };
   transactions.push(newTx);
@@ -70,11 +77,12 @@ export async function addTransaction(userId: string, tx: Omit<Transaction, "_id"
 }
 
 export async function deleteTransaction(userId: string, txId: string): Promise<boolean> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     const result = await db.collection("transactions").deleteOne({ _id: txId, userId } as any);
     return result.deletedCount > 0;
-  }
+  });
+  if (mongoResult !== null) return mongoResult;
   const transactions = loadJson<Transaction>(getUserFile(userId, "transactions"));
   const filtered = transactions.filter(t => t._id !== txId);
   if (filtered.length === transactions.length) return false;
@@ -85,21 +93,23 @@ export async function deleteTransaction(userId: string, txId: string): Promise<b
 // ---- Targets ----
 
 export async function getTargets(userId: string): Promise<Target[]> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     const targets = await db.collection("targets").find({ userId }).toArray();
     return targets.map((t: any) => ({ ...t, _id: t._id?.toString() || t._id })) as Target[];
-  }
+  });
+  if (mongoResult) return mongoResult;
   return loadJson<Target>(getUserFile(userId, "targets"));
 }
 
 export async function addTarget(userId: string, target: Omit<Target, "_id" | "userId">): Promise<Target> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     const doc = { ...target, userId, _id: `tgt_${Date.now()}_${Math.random().toString(36).slice(2, 9)}` };
     await db.collection("targets").insertOne(doc as any);
     return doc;
-  }
+  });
+  if (mongoResult) return mongoResult;
   const targets = loadJson<Target>(getUserFile(userId, "targets"));
   const newTarget: Target = { ...target, _id: `tgt_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`, userId };
   targets.push(newTarget);
@@ -108,12 +118,13 @@ export async function addTarget(userId: string, target: Omit<Target, "_id" | "us
 }
 
 export async function updateTarget(userId: string, targetId: string, updates: Partial<Target>): Promise<Target | null> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     await db.collection("targets").updateOne({ _id: targetId, userId } as any, { $set: updates });
     const doc = await db.collection("targets").findOne({ _id: targetId, userId } as any);
     return doc ? { ...doc, _id: (doc._id as any)?.toString() || doc._id } as Target : null;
-  }
+  });
+  if (mongoResult) return mongoResult;
   const targets = loadJson<Target>(getUserFile(userId, "targets"));
   const idx = targets.findIndex(t => t._id === targetId);
   if (idx === -1) return null;
@@ -123,11 +134,12 @@ export async function updateTarget(userId: string, targetId: string, updates: Pa
 }
 
 export async function deleteTarget(userId: string, targetId: string): Promise<boolean> {
-  if (isMongoAvailable()) {
+  const mongoResult = await tryMongo(async () => {
     const { db } = await connectToDatabase();
     const result = await db.collection("targets").deleteOne({ _id: targetId, userId } as any);
     return result.deletedCount > 0;
-  }
+  });
+  if (mongoResult !== null) return mongoResult;
   const targets = loadJson<Target>(getUserFile(userId, "targets"));
   const filtered = targets.filter(t => t._id !== targetId);
   if (filtered.length === targets.length) return false;

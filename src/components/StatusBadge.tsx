@@ -5,13 +5,14 @@ interface StatusBadgeProps {
 
 export default function StatusBadge({
   status = "LISTENING",
-  user = "ALEX_STU",
+  user = "GUEST",
 }: StatusBadgeProps) {
   return (
-    <div className="inline-flex border-2 border-gray-700 px-4 py-2 bg-[#0a0a0a]">
-      <p className="font-mono text-sm md:text-base text-[#00FFFF] font-bold">
-        {`> STATUS: ${status} // USER: ${user}`}
-      </p>
+    <div className="eyebrow">
+      <span className={`w-1.5 h-1.5 rounded-full ${
+        status === "PROCESSING" ? "bg-amber-400 animate-pulse" : "bg-emerald-400"
+      }`} />
+      {status === "PROCESSING" ? "Processing" : "Ready"} — {user}
     </div>
   );
 }

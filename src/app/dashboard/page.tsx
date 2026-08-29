@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import DonutChart from "@/components/DonutChart";
+import SpendingAreaChart from "@/components/SpendingAreaChart";
+import MonthlyBarChart from "@/components/MonthlyBarChart";
 
 interface Transaction {
   _id: string;
@@ -77,10 +80,10 @@ export default function DashboardPage() {
     return (
       <>
         <Sidebar activeNav="dashboard" />
-        <main className="flex-1 h-screen overflow-y-auto bg-black p-4 md:p-16 pt-20 md:pt-16 bg-grid-pattern">
-          <div className="max-w-6xl mx-auto flex flex-col items-center justify-center h-full gap-4">
-            <iconify-icon icon="lucide:loader-2" class="text-6xl text-[#00FFFF] animate-spin" />
-            <p className="font-mono text-xl text-gray-500">LOADING DATA...</p>
+        <main className="md:ml-[296px] min-h-screen flex items-center justify-center p-6">
+          <div className="text-center space-y-4 animate-fade-in-up">
+            <div className="w-12 h-12 rounded-full border-2 border-[var(--cyan)]/30 border-t-[var(--cyan)] animate-spin mx-auto" />
+            <p className="text-sm text-white/20">Loading dashboard...</p>
           </div>
         </main>
       </>
@@ -91,10 +94,13 @@ export default function DashboardPage() {
     return (
       <>
         <Sidebar activeNav="dashboard" />
-        <main className="flex-1 h-screen overflow-y-auto bg-black p-4 md:p-16 pt-20 md:pt-16 bg-grid-pattern">
-          <div className="max-w-6xl mx-auto flex flex-col items-center justify-center h-full gap-4">
-            <p className="font-mono text-xl text-gray-500">LOGIN TO VIEW DASHBOARD</p>
-            <a href="/login" className="font-mono text-[#00FFFF] hover:text-white transition-colors">LOGIN →</a>
+        <main className="md:ml-[296px] min-h-screen flex items-center justify-center p-6">
+          <div className="text-center space-y-4 animate-fade-in-up">
+            <p className="text-lg text-white/30">Sign in to view dashboard</p>
+            <a href="/login" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/[0.06] border border-white/[0.08] text-[var(--cyan)] text-sm hover:bg-white/[0.1] transition-all duration-300">
+              Sign in
+              <iconify-icon icon="lucide:arrow-right" class="text-xs" />
+            </a>
           </div>
         </main>
       </>
@@ -106,126 +112,175 @@ export default function DashboardPage() {
   return (
     <>
       <Sidebar activeNav="dashboard" />
-      <main className="flex-1 h-screen overflow-y-auto bg-black p-4 md:p-16 pt-20 md:pt-16 bg-grid-pattern relative scroll-smooth">
+      <main className="md:ml-[296px] min-h-screen p-6 md:p-12 lg:p-16">
         <div className="max-w-6xl mx-auto flex flex-col gap-16 pb-20">
-          <section className="flex flex-col gap-8">
-            <div className="inline-flex border-2 border-gray-700 px-4 py-2 bg-[#0a0a0a]">
-              <p className="font-mono text-sm md:text-base text-[#00FFFF] font-bold">
-                {">"} MODULE: DASHBOARD // {user.name.toUpperCase()}
-              </p>
+
+          {/* Header */}
+          <section className="flex flex-col gap-6 animate-fade-in-up">
+            <div className="eyebrow">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)]" />
+              Dashboard — {user.name}
             </div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tight leading-[1.1]">
-              Dashboard
-              <br />
-              <span className="text-gray-500">Your financial overview.</span>
+            <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.05]">
+              Overview
             </h1>
           </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Bento Grid — Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { label: "BALANCE", value: "Rs. " + (s?.balance || 0).toLocaleString(), icon: "lucide:wallet" },
-              { label: "INCOME", value: "Rs. " + (s?.totalIncome || 0).toLocaleString(), icon: "lucide:trending-up" },
-              { label: "EXPENSES", value: "Rs. " + (s?.totalExpenses || 0).toLocaleString(), icon: "lucide:credit-card" },
-            ].map((item) => (
-              <div key={item.label} className="border-2 border-gray-700 p-8 bg-[#0a0a0a]">
-                <p className="font-mono text-sm text-gray-500 mb-4 border-b border-gray-700 pb-2">{item.label}</p>
-                <div className="flex items-center gap-4">
-                  <iconify-icon icon={item.icon} class="text-4xl text-[#00FFFF]" />
-                  <h3 className="text-3xl md:text-4xl font-black text-white">{item.value}</h3>
+              { label: "Balance", value: "Rs. " + (s?.balance || 0).toLocaleString(), icon: "lucide:wallet", span: "md:col-span-2" },
+              { label: "Income", value: "Rs. " + (s?.totalIncome || 0).toLocaleString(), icon: "lucide:trending-up", span: "" },
+              { label: "Expenses", value: "Rs. " + (s?.totalExpenses || 0).toLocaleString(), icon: "lucide:credit-card", span: "md:col-span-3" },
+            ].map((item, i) => (
+              <div
+                key={item.label}
+                className={`doppelrand animate-fade-in-up ${item.span}`}
+                style={{ animationDelay: `${100 + i * 75}ms` }}
+              >
+                <div className="doppelrand-inner p-6 md:p-8 flex flex-col justify-between h-full">
+                  <div className="flex items-center justify-between mb-6">
+                    <p className="text-xs uppercase tracking-[0.15em] text-white/30">{item.label}</p>
+                    <div className="w-8 h-8 rounded-full bg-[var(--cyan)]/5 border border-[var(--cyan)]/10 flex items-center justify-center">
+                      <iconify-icon icon={item.icon} class="text-sm text-[var(--cyan)]" />
+                    </div>
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{item.value}</h3>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Quick Add Transaction */}
-          <div className="border-2 border-gray-700 p-6 bg-[#0a0a0a]">
-            <div className="flex items-center justify-between mb-4">
-              <p className="font-mono text-sm text-gray-500">QUICK_ADD</p>
-              <button
-                onClick={() => setShowAddTx(!showAddTx)}
-                className="text-[#00FFFF] hover:text-white font-mono text-sm"
-              >
-                {showAddTx ? "CANCEL" : "+ ADD"}
-              </button>
-            </div>
-            {showAddTx && (
-              <div className="flex flex-col md:flex-row gap-4">
-                <input
-                  type="text"
-                  placeholder="DESCRIPTION"
-                  value={newTx.description}
-                  onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
-                  className="flex-1 bg-black border-2 border-gray-700 text-white p-3 font-mono text-sm focus:border-[#00FFFF] outline-none"
-                />
-                <select
-                  value={newTx.category}
-                  onChange={(e) => setNewTx({ ...newTx, category: e.target.value })}
-                  className="bg-black border-2 border-gray-700 text-white p-3 font-mono text-sm focus:border-[#00FFFF] outline-none"
-                >
-                  {["FOOD", "SUBS", "EDU", "TRANSIT", "ENTERTAIN", "UTILITIES", "OTHER"].map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  placeholder="AMOUNT (PKR)"
-                  value={newTx.amount}
-                  onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
-                  className="w-40 bg-black border-2 border-gray-700 text-white p-3 font-mono text-sm focus:border-[#00FFFF] outline-none"
-                />
+          {/* Quick Add */}
+          <div className="doppelrand animate-fade-in-up delay-200">
+            <div className="doppelrand-inner p-6 md:p-8">
+              <div className="flex items-center justify-between mb-5">
+                <p className="text-xs uppercase tracking-[0.15em] text-white/30">Quick Add</p>
                 <button
-                  onClick={addTransaction}
-                  className="bg-[#00FFFF] text-black px-6 py-3 font-bold hover:bg-white transition-colors"
+                  onClick={() => setShowAddTx(!showAddTx)}
+                  className="text-xs text-[var(--cyan)] hover:text-white transition-colors duration-300"
                 >
-                  ADD
+                  {showAddTx ? "Cancel" : "+ Add"}
                 </button>
               </div>
-            )}
+              {showAddTx && (
+                <div className="flex flex-col md:flex-row gap-3 animate-fade-in-up">
+                  <input
+                    type="text"
+                    placeholder="Description"
+                    value={newTx.description}
+                    onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
+                    className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm placeholder:text-white/15 font-light"
+                  />
+                  <select
+                    value={newTx.category}
+                    onChange={(e) => setNewTx({ ...newTx, category: e.target.value })}
+                    className="bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm appearance-none"
+                  >
+                    {["FOOD", "SUBS", "EDU", "TRANSIT", "ENTERTAIN", "UTILITIES", "OTHER"].map(c => (
+                      <option key={c} value={c} className="bg-black">{c}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    placeholder="Amount (PKR)"
+                    value={newTx.amount}
+                    onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
+                    className="w-40 bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3 text-white text-sm placeholder:text-white/15 font-light"
+                  />
+                  <button
+                    onClick={addTransaction}
+                    className="group flex items-center justify-center gap-2 bg-[var(--cyan)] text-black px-6 py-3 rounded-full font-medium text-sm hover:shadow-[0_0_20px_rgba(0,255,255,0.15)] transition-all duration-500 ease-[var(--ease-fluid)] active:scale-[0.97]"
+                  >
+                    Add
+                    <span className="w-5 h-5 rounded-full bg-black/10 flex items-center justify-center transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                      <iconify-icon icon="lucide:plus" class="text-[10px]" />
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Category Breakdown */}
+          {/* Charts Row — Donut + Area */}
           {s && Object.keys(s.categoryTotals).length > 0 && (
-            <div className="border-2 border-gray-700 p-8 bg-[#0a0a0a]">
-              <p className="font-mono text-sm text-gray-500 mb-6 border-b border-gray-700 pb-2">SPENDING BY CATEGORY</p>
-              <div className="flex flex-col gap-4">
-                {Object.entries(s.categoryTotals)
-                  .sort(([, a], [, b]) => b - a)
-                  .map(([cat, amt]) => (
-                    <div key={cat} className="flex items-center gap-4">
-                      <span className="font-mono text-sm text-gray-400 w-24">{cat}</span>
-                      <div className="flex-1 h-6 bg-black border border-gray-700">
-                        <div
-                          className="h-full bg-[#00FFFF]"
-                          style={{ width: `${Math.min((amt / s.totalExpenses) * 100, 100)}%` }}
-                        />
-                      </div>
-                      <span className="font-mono text-sm text-white w-24 text-right">Rs. {amt.toLocaleString()}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up delay-300">
+              <div className="doppelrand">
+                <div className="doppelrand-inner p-6 md:p-8">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/30 mb-6">Spending by Category</p>
+                  <DonutChart data={s.categoryTotals} total={s.totalExpenses} />
+                </div>
+              </div>
+              <div className="doppelrand">
+                <div className="doppelrand-inner p-6 md:p-8">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/30 mb-6">Income vs Expenses</p>
+                  <SpendingAreaChart transactions={data?.transactions || []} />
+                  <div className="flex items-center gap-5 mt-4">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#00FFFF]" />
+                      <span className="text-[10px] uppercase tracking-wider text-white/25">Income</span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#F472B6]" />
+                      <span className="text-[10px] uppercase tracking-wider text-white/25">Expenses</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Monthly Trend */}
+          {data?.transactions && data.transactions.length > 0 && (
+            <div className="doppelrand animate-fade-in-up delay-400">
+              <div className="doppelrand-inner p-6 md:p-8">
+                <p className="text-xs uppercase tracking-[0.15em] text-white/30 mb-6">Monthly Trend</p>
+                <MonthlyBarChart transactions={data.transactions} />
+                <div className="flex items-center gap-5 mt-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00FFFF]" />
+                    <span className="text-[10px] uppercase tracking-wider text-white/25">Income</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#F472B6]" />
+                    <span className="text-[10px] uppercase tracking-wider text-white/25">Expenses</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
           {/* Recent Transactions */}
           {data?.transactions && data.transactions.length > 0 && (
-            <div className="border-2 border-gray-700 p-8 bg-[#0a0a0a]">
-              <div className="flex items-center justify-between mb-6 border-b border-gray-700 pb-2">
-                <p className="font-mono text-sm text-gray-500">RECENT TRANSACTIONS</p>
-                <a href="/ledger" className="font-mono text-sm text-[#00FFFF] hover:text-white">VIEW_ALL →</a>
-              </div>
-              <div className="flex flex-col gap-2">
-                {data.transactions.slice(-10).reverse().map(tx => (
-                  <div key={tx._id} className="flex items-center justify-between py-2 border-b border-gray-800">
-                    <div className="flex items-center gap-4">
-                      <span className="font-mono text-xs text-gray-600">{tx.date}</span>
-                      <span className="font-mono text-sm text-white">{tx.description}</span>
-                      <span className="font-mono text-xs text-gray-500 border border-gray-700 px-2 py-0.5">{tx.category}</span>
+            <div className="doppelrand animate-fade-in-up delay-400">
+              <div className="doppelrand-inner">
+                <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.04]">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/30">Recent Transactions</p>
+                  <a href="/ledger" className="text-xs text-[var(--cyan)] hover:text-white transition-colors duration-300">
+                    View all
+                  </a>
+                </div>
+                <div className="flex flex-col">
+                  {data.transactions.slice(-10).reverse().map((tx, i) => (
+                    <div
+                      key={tx._id}
+                      className="flex items-center justify-between px-8 py-4 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.01] transition-colors duration-300"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <span className="text-[11px] text-white/15 w-20 shrink-0 font-mono">{tx.date}</span>
+                        <span className="text-sm text-white/60 truncate">{tx.description}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-white/20 px-2 py-0.5 rounded-full bg-white/[0.03] border border-white/[0.04] shrink-0">
+                          {tx.category}
+                        </span>
+                      </div>
+                      <span className={`text-sm font-medium shrink-0 ml-4 ${
+                        tx.amount >= 0 ? "text-[var(--cyan)]" : "text-red-400/70"
+                      }`}>
+                        {tx.amount >= 0 ? "+" : ""}Rs. {tx.amount.toLocaleString()}
+                      </span>
                     </div>
-                    <span className={`font-mono font-bold ${tx.amount >= 0 ? "text-[#00FFFF]" : "text-red-500"}`}>
-                      {tx.amount >= 0 ? "+" : ""}Rs. {tx.amount.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}

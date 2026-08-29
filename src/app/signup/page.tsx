@@ -23,14 +23,12 @@ export default function SignupPage() {
       setError("Passwords do not match");
       return;
     }
-
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
-
     try {
       await signup(name, email, password);
       router.push("/");
@@ -42,103 +40,103 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black bg-grid-pattern flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-md animate-fade-in-up">
         {/* Logo */}
         <div className="text-center mb-12">
-          <h1 className="text-6xl font-black text-white tracking-tighter mb-2">
-            FIN
-            <br />
-            MATE
+          <h1 className="text-5xl font-bold text-white tracking-tight mb-3">
+            FIN<span className="text-[var(--cyan)]">MATE</span>
           </h1>
-          <p className="font-mono text-gray-500 text-sm">SYSTEM.REGISTER</p>
+          <div className="eyebrow mx-auto mt-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)]" />
+            Create your account
+          </div>
         </div>
 
-        {/* Signup Form */}
-        <div className="border-2 border-gray-700 bg-[#0a0a0a] p-8">
-          <div className="inline-flex border-2 border-gray-700 px-4 py-2 bg-black mb-8">
-            <p className="font-mono text-sm text-[#00FFFF] font-bold">
-              {">"} CREATE_ACCOUNT
-            </p>
-          </div>
+        {/* Form Card — Double Bezel */}
+        <div className="doppelrand">
+          <div className="doppelrand-inner p-8 md:p-10">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              {error && (
+                <div className="rounded-2xl bg-red-500/5 border border-red-500/10 px-5 py-3 text-sm text-red-400">
+                  {error}
+                </div>
+              )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            {error && (
-              <div className="border-2 border-red-500 bg-red-500/10 p-4">
-                <p className="font-mono text-sm text-red-500">{error}</p>
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-[0.15em] text-white/30 font-medium">Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3.5 text-white text-sm placeholder:text-white/15 font-light transition-all duration-300"
+                  placeholder="Your name"
+                  required
+                />
               </div>
-            )}
 
-            <div>
-              <label className="font-mono text-sm text-gray-500 mb-2 block">NAME</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-black border-2 border-gray-700 p-4 font-mono text-white text-lg focus:border-[#00FFFF] outline-none transition-colors"
-                placeholder="YOUR_NAME"
-                required
-              />
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-[0.15em] text-white/30 font-medium">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3.5 text-white text-sm placeholder:text-white/15 font-light transition-all duration-300"
+                  placeholder="you@university.edu"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-[0.15em] text-white/30 font-medium">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3.5 text-white text-sm placeholder:text-white/15 font-light transition-all duration-300"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-[0.15em] text-white/30 font-medium">Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-white/[0.02] border border-white/[0.06] rounded-2xl px-5 py-3.5 text-white text-sm placeholder:text-white/15 font-light transition-all duration-300"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="group w-full flex items-center justify-center gap-3 bg-[var(--cyan)] text-black font-medium py-3.5 rounded-full hover:shadow-[0_0_30px_rgba(0,255,255,0.2)] transition-all duration-500 ease-[var(--ease-fluid)] active:scale-[0.97] disabled:opacity-40 mt-2"
+              >
+                {loading ? "Creating account..." : "Create account"}
+                <span className="w-6 h-6 rounded-full bg-black/10 flex items-center justify-center transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <iconify-icon icon="lucide:arrow-right" class="text-xs" />
+                </span>
+              </button>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-white/[0.04] text-center">
+              <p className="text-sm text-white/25">
+                Already have an account?{" "}
+                <Link href="/login" className="text-[var(--cyan)] hover:text-white transition-colors duration-300">
+                  Sign in
+                </Link>
+              </p>
             </div>
-
-            <div>
-              <label className="font-mono text-sm text-gray-500 mb-2 block">EMAIL</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black border-2 border-gray-700 p-4 font-mono text-white text-lg focus:border-[#00FFFF] outline-none transition-colors"
-                placeholder="USER@EMAIL.COM"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="font-mono text-sm text-gray-500 mb-2 block">PASSWORD</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-black border-2 border-gray-700 p-4 font-mono text-white text-lg focus:border-[#00FFFF] outline-none transition-colors"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="font-mono text-sm text-gray-500 mb-2 block">CONFIRM_PASSWORD</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-black border-2 border-gray-700 p-4 font-mono text-white text-lg focus:border-[#00FFFF] outline-none transition-colors"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#00FFFF] text-black font-bold text-xl py-4 hover:bg-white transition-colors border-2 border-[#00FFFF] hover:border-white disabled:opacity-50 disabled:hover:bg-[#00FFFF]"
-            >
-              {loading ? "CREATING_ACCOUNT..." : "REGISTER"}
-            </button>
-          </form>
-
-          <div className="mt-8 pt-6 border-t border-gray-800 text-center">
-            <p className="font-mono text-sm text-gray-500">
-              HAVE_ACCOUNT?{" "}
-              <Link href="/login" className="text-[#00FFFF] hover:text-white transition-colors">
-                LOGIN
-              </Link>
-            </p>
           </div>
         </div>
 
         <div className="mt-8 text-center">
-          <Link href="/" className="font-mono text-sm text-gray-600 hover:text-gray-400 transition-colors">
-            ← BACK_TO_SYSTEM
+          <Link href="/" className="text-sm text-white/15 hover:text-white/40 transition-colors duration-300">
+            Back to home
           </Link>
         </div>
       </div>

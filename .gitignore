@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local data
+.finmate-data/
+.finmate-users.json
+
+# agent tools
+.agents/
+.claude/
+.superdesign/
+skills-lock.json

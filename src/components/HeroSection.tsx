@@ -8,10 +8,17 @@ export default function HeroSection({
   subline = "How can I optimize your capital?",
 }: HeroSectionProps) {
   return (
-    <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tight leading-[1.1]">
-      {headline}
-      <br />
-      <span className="text-gray-500">{subline}</span>
-    </h2>
+    <div className="space-y-6">
+      <div className="eyebrow">
+        <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)] animate-pulse" />
+        AI Financial Advisor
+      </div>
+      <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold text-white tracking-tight leading-[1.05]">
+        {headline}
+      </h1>
+      <p className="text-lg md:text-xl text-white/30 font-light max-w-lg">
+        {subline}
+      </p>
+    </div>
   );
 }
